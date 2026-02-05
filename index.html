@@ -8,7 +8,7 @@
     <style>
         body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .btn { background-color: #ffa500; border: none; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; }
+        .btn { background-color: #ffa500; border: none; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -19,34 +19,45 @@
         
         <button id="btn-pay" class="btn">⚡ BUKA DOMPET PI</button>
         
-        <p id="logs" style="margin-top:20px; color: red; font-size: 12px;"></p>
+        <p id="logs" style="margin-top:20px; color: red; font-size: 14px; font-weight: bold;"></p>
     </div>
 
     <script>
         const Pi = window.Pi;
-        // Kita paksa inisialisasi tanpa syarat berat
-        Pi.init({ version: "1.5", sandbox: false });
+        
+        // Inisialisasi otomatis saat halaman dimuat
+        try {
+            Pi.init({ version: "1.5", sandbox: false });
+        } catch (e) {
+            console.error(e);
+        }
 
         document.getElementById('btn-pay').addEventListener('click', async () => {
             try {
-                document.getElementById('logs').innerText = "Sedang menghubungi Dompet Pi...";
+                document.getElementById('logs').innerText = "Menghubungkan ke Pi Network...";
                 
+                // Melakukan pembayaran
                 const payment = await Pi.createPayment({
                     amount: 0.1,
-                    memo: "Tes Langkah 10",
+                    memo: "Tes Donasi Langkah 10",
                     metadata: { internal: "513" },
                 }, {
-                    onReadyForServerApproval: (id) => console.log("Approved"),
-                    onReadyForServerCompletion: (id, txid) => {
-                        alert("ALHAMDULILLAH SUKSES! TXID: " + txid);
+                    onReadyForServerApproval: (id) => {
+                        document.getElementById('logs').innerText = "Menunggu Persetujuan...";
                     },
-                    onCancel: (id) => { document.getElementById('logs').innerText = "Pembayaran Dibatalkan."; },
+                    onReadyForServerCompletion: (id, txid) => {
+                        document.getElementById('logs').style.color = "green";
+                        document.getElementById('logs').innerText = "ALHAMDULILLAH SUKSES!\nTXID: " + txid;
+                        alert("Transaksi Berhasil!");
+                    },
+                    onCancel: (id) => { 
+                        document.getElementById('logs').innerText = "Pembayaran Dibatalkan."; 
+                    },
                     onError: (error) => { 
                         document.getElementById('logs').innerText = "Detail Error: " + error.message;
                     },
                 });
             } catch (err) {
-                // Jika error, dia akan tulis penyebabnya di layar, bukan lagi pesan "Mohon buka di Pi Browser"
                 document.getElementById('logs').innerText = "Koneksi Gagal: " + err.message;
             }
         });
