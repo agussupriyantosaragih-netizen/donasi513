@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yayasan 513 - Testnet</title>
+    <title>Yayasan 513 - Final</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
@@ -12,53 +10,53 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <h2>Donasi Yayasan 513</h2>
-        <p>Tekan tombol di bawah untuk memanggil Dompet Pi.</p>
-        
+        <p>Status: <span id="status-text" style="color: orange;">Memulai...</span></p>
         <button id="btn-pay" class="btn">⚡ BUKA DOMPET PI</button>
-        
-        <p id="logs" style="margin-top:20px; color: red; font-size: 14px; font-weight: bold;"></p>
+        <p id="logs" style="margin-top:20px; color: red; font-size: 12px;"></p>
     </div>
 
     <script>
         const Pi = window.Pi;
-        
-        // Inisialisasi otomatis saat halaman dimuat
-        try {
-            Pi.init({ version: "1.5", sandbox: false });
-        } catch (e) {
-            console.error(e);
+
+        // FUNGSI INISIALISASI OTOMATIS
+        async function initPi() {
+            try {
+                // Inisialisasi wajib
+                await Pi.init({ version: "1.5", sandbox: false });
+                document.getElementById('status-text').innerText = "Terhubung ke Pi!";
+                document.getElementById('status-text').style.color = "green";
+                
+                // Minta izin username (ini kunci agar SDK dianggap aktif)
+                const scopes = ['username', 'payments'];
+                function onIncompletePaymentFound(payment) { /* Biarkan kosong */ };
+                
+                await Pi.authenticate(scopes, onIncompletePaymentFound);
+            } catch (err) {
+                document.getElementById('logs').innerText = "Gagal Inisialisasi: " + err.message;
+            }
         }
+
+        // Jalankan saat web dibuka
+        initPi();
 
         document.getElementById('btn-pay').addEventListener('click', async () => {
             try {
-                document.getElementById('logs').innerText = "Menghubungkan ke Pi Network...";
-                
-                // Melakukan pembayaran
                 const payment = await Pi.createPayment({
                     amount: 0.1,
-                    memo: "Tes Donasi Langkah 10",
-                    metadata: { internal: "513" },
+                    memo: "Donasi Langkah 10 Yayasan 513",
+                    metadata: { type: "testnet" },
                 }, {
-                    onReadyForServerApproval: (id) => {
-                        document.getElementById('logs').innerText = "Menunggu Persetujuan...";
-                    },
+                    onReadyForServerApproval: (id) => console.log("Approved"),
                     onReadyForServerCompletion: (id, txid) => {
-                        document.getElementById('logs').style.color = "green";
-                        document.getElementById('logs').innerText = "ALHAMDULILLAH SUKSES!\nTXID: " + txid;
-                        alert("Transaksi Berhasil!");
+                        alert("ALHAMDULILLAH SUKSES! TXID: " + txid);
                     },
-                    onCancel: (id) => { 
-                        document.getElementById('logs').innerText = "Pembayaran Dibatalkan."; 
-                    },
-                    onError: (error) => { 
-                        document.getElementById('logs').innerText = "Detail Error: " + error.message;
-                    },
+                    onCancel: (id) => { },
+                    onError: (error) => { alert("Error: " + error.message); },
                 });
             } catch (err) {
-                document.getElementById('logs').innerText = "Koneksi Gagal: " + err.message;
+                alert("Klik sekali lagi atau refresh halaman.");
             }
         });
     </script>
