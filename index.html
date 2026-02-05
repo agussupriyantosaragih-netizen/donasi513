@@ -1,62 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Yayasan 513 - Final</title>
+    <title>Final Langkah 10 - Yayasan 513</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
+        body { font-family: sans-serif; text-align: center; padding: 40px; background-color: #f4f4f4; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        .btn { background-color: #ffa500; border: none; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px; }
+        .btn { background-color: #ffa500; border: none; color: white; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px; }
+        #status-msg { margin-top: 15px; font-weight: bold; color: blue; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Donasi Yayasan 513</h2>
-        <p>Status: <span id="status-text" style="color: orange;">Memulai...</span></p>
+        <h2>Zakat & Infaq 513</h2>
+        <div id="status-msg">Sedang Menginisialisasi...</div>
         <button id="btn-pay" class="btn">⚡ BUKA DOMPET PI</button>
-        <p id="logs" style="margin-top:20px; color: red; font-size: 12px;"></p>
+        <p id="error-log" style="color: red; font-size: 12px; margin-top: 15px;"></p>
     </div>
 
     <script>
         const Pi = window.Pi;
 
-        // FUNGSI INISIALISASI OTOMATIS
-        async function initPi() {
+        async function initApp() {
             try {
-                // Inisialisasi wajib
+                // Inisialisasi SDK
                 await Pi.init({ version: "1.5", sandbox: false });
-                document.getElementById('status-text').innerText = "Terhubung ke Pi!";
-                document.getElementById('status-text').style.color = "green";
                 
-                // Minta izin username (ini kunci agar SDK dianggap aktif)
+                // Kunci Utama: Autentikasi User
                 const scopes = ['username', 'payments'];
-                function onIncompletePaymentFound(payment) { /* Biarkan kosong */ };
+                const auth = await Pi.authenticate(scopes, (payment) => {});
                 
-                await Pi.authenticate(scopes, onIncompletePaymentFound);
+                document.getElementById('status-msg').innerText = "✅ TERHUBUNG: " + auth.user.username;
+                document.getElementById('status-msg').style.color = "green";
             } catch (err) {
-                document.getElementById('logs').innerText = "Gagal Inisialisasi: " + err.message;
+                document.getElementById('status-msg').innerText = "❌ Koneksi Belum Siap";
+                document.getElementById('error-log').innerText = "Info: Pastikan link sudah di-Submit di Portal Developer.";
             }
         }
 
         // Jalankan saat web dibuka
-        initPi();
+        initApp();
 
         document.getElementById('btn-pay').addEventListener('click', async () => {
             try {
                 const payment = await Pi.createPayment({
                     amount: 0.1,
-                    memo: "Donasi Langkah 10 Yayasan 513",
-                    metadata: { type: "testnet" },
+                    memo: "Donasi Zakat Infaq Langkah 10",
+                    metadata: { type: "testnet_513" },
                 }, {
                     onReadyForServerApproval: (id) => console.log("Approved"),
                     onReadyForServerCompletion: (id, txid) => {
-                        alert("ALHAMDULILLAH SUKSES! TXID: " + txid);
+                        alert("ALHAMDULILLAH SUKSES!\nCek Checklist Langkah 10 Anda sekarang.");
                     },
                     onCancel: (id) => { },
                     onError: (error) => { alert("Error: " + error.message); },
                 });
             } catch (err) {
-                alert("Klik sekali lagi atau refresh halaman.");
+                alert("Gagal memanggil dompet. Pastikan status sudah HIJAU TERHUBUNG.");
             }
         });
     </script>
